@@ -5,7 +5,7 @@ const path = require("path");
 
 const inputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\delta"; // your folder path
 const outputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\updated delta"; // The path where you want the files to be saved , in this case it will create a folder named updated delta
-const referenceZip = "95842"; // to compare with
+const referenceZip = "94590"; // to compare with
 
 function extractZipCode(address) {
   if (!address || address.trim() === '') {
@@ -62,3 +62,5 @@ if (!fs.existsSync(outputFolderPath)) {
 
 processExcelFolder(inputFolderPath, outputFolderPath, referenceZip);
 
+const cityName = zipcodes.lookup(referenceZip)
+console.warn(`Zip code for city ${cityName.city}`)
