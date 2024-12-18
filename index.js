@@ -8,6 +8,9 @@ const outputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\updated delta"; /
 const referenceZip = "95842"; // to compare with
 
 function extractZipCode(address) {
+  if (!address || address.trim() === '') {
+    return null; 
+  }
     const reversedAddress = address.split('').reverse().join('');
     const zipCodeRegex = /\b\d{5}(?:-\d{4})?\b/;
     const match = reversedAddress.match(zipCodeRegex);
@@ -47,7 +50,7 @@ function processExcelFolder(inputFolderPath, outputFolderPath, referenceZip) {
   fs.readdirSync(inputFolderPath).forEach((file) => {
     const filePath = path.join(inputFolderPath, file);
     if (path.extname(file) === ".xlsx") {
-      const outputFilePath = path.join(outputFolderPath, `updated_${file}`);
+      const outputFilePath = path.join(outputFolderPath, `${file}`);
       processExcelFile(filePath, outputFilePath, referenceZip);
     }
   });
