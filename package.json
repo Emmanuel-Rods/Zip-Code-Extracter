@@ -1,0 +1,17 @@
+{
+  "name": "zip-codes",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Roger Rodrigues",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "xlsx": "^0.18.5",
+    "zipcodes": "^8.0.0"
+  }
+}
