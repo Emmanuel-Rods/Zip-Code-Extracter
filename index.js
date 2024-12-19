@@ -5,7 +5,8 @@ const path = require("path");
 
 const inputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\delta"; // your folder path
 const outputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\updated delta"; // The path where you want the files to be saved , in this case it will create a folder named updated delta
-const referenceZip = "94590"; // to compare with
+const referenceZip = "95843"; // to compare with
+const maxDistanceInKm = 30; // Maximum distance in kilometers to retain rows
 
 function extractZipCode(address) {
   if (!address || address.trim() === '') {
@@ -23,20 +24,40 @@ function processExcelFile(filePath, outputFilePath, referenceZip) {
   const sheet = workbook.Sheets[sheetName];
   const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-  const updatedData = jsonData.map((row) => {
-    const address = row["address"];
-    const zipCode = extractZipCode(address);
+  // const updatedData = jsonData.map((row) => {
+  //   const address = row["address"];
+  //   const zipCode = extractZipCode(address);
 
-    if (zipCode) {
-      const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
-      const distanceInKm = zipcodes.toKilometers(distanceInMiles);
-      row["distance (km)"] = distanceInKm.toFixed(2);
-    } else {
-      row["distance (km)"] = "N/A";
-    }
+  //   if (zipCode) {
+  //     const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
+  //     const distanceInKm = zipcodes.toKilometers(distanceInMiles);
+  //     row["distance (km)"] = distanceInKm.toFixed(2);
+  //   } else {
+  //     row["distance (km)"] = "N/A";
+  //   }
 
-    return row;
-  });
+  //   return row;
+  // });
+
+    // Filter and update data
+  const updatedData = jsonData
+    .map((row) => {
+      const address = row["address"];
+      const zipCode = extractZipCode(address);
+
+      if (zipCode) {
+        const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
+        const distanceInKm = zipcodes.toKilometers(distanceInMiles);
+        if (distanceInKm <= maxDistanceInKm) {
+          row["distance (km)"] = distanceInKm.toFixed(2);
+          return row; // Keep rows within the max distance
+        }
+      }
+
+      return null; // Exclude rows that don't meet the distance criteria
+    })
+    .filter(Boolean); // Remove null entries
+
 
   const updatedSheet = xlsx.utils.json_to_sheet(updatedData);
   const updatedWorkbook = xlsx.utils.book_new();
