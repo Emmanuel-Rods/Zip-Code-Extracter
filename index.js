@@ -24,40 +24,23 @@ function processExcelFile(filePath, outputFilePath, referenceZip) {
   const sheet = workbook.Sheets[sheetName];
   const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-  // const updatedData = jsonData.map((row) => {
-  //   const address = row["address"];
-  //   const zipCode = extractZipCode(address);
+  const updatedData = jsonData.map((row) => {
+    const address = row["address"];
+    const zipCode = extractZipCode(address);
 
-  //   if (zipCode) {
-  //     const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
-  //     const distanceInKm = zipcodes.toKilometers(distanceInMiles);
-  //     row["distance (km)"] = distanceInKm.toFixed(2);
-  //   } else {
-  //     row["distance (km)"] = "N/A";
-  //   }
-
-  //   return row;
-  // });
-
-    // Filter and update data
-  const updatedData = jsonData
-    .map((row) => {
-      const address = row["address"];
-      const zipCode = extractZipCode(address);
-
-      if (zipCode) {
-        const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
-        const distanceInKm = zipcodes.toKilometers(distanceInMiles);
+    if (zipCode) {
+      const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
+      const distanceInKm = zipcodes.toKilometers(distanceInMiles);
         if (distanceInKm <= maxDistanceInKm) {
           row["distance (km)"] = distanceInKm.toFixed(2);
           return row; // Keep rows within the max distance
-        }
-      }
+        } 
+    } else {
+      row["distance (km)"] = "N/A";
+    }
 
-      return null; // Exclude rows that don't meet the distance criteria
-    })
-    .filter(Boolean); // Remove null entries
-
+    return row;
+  });
 
   const updatedSheet = xlsx.utils.json_to_sheet(updatedData);
   const updatedWorkbook = xlsx.utils.book_new();
