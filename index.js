@@ -18,37 +18,77 @@ function extractZipCode(address) {
     return match ? match[0].split('').reverse().join('') : null; 
 }
 
+// function processExcelFile(filePath, outputFilePath, referenceZip) {
+//   const workbook = xlsx.readFile(filePath);
+//   const sheetName = workbook.SheetNames[0];
+//   const sheet = workbook.Sheets[sheetName];
+//   const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+//   const updatedData = jsonData.map((row) => {
+//     const address = row["address"];
+//     const zipCode = extractZipCode(address);
+
+//     if (zipCode) {
+//       const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
+//       const distanceInKm = zipcodes.toKilometers(distanceInMiles);
+//         if (distanceInKm <= maxDistanceInKm) {
+//           row["distance (km)"] = distanceInKm.toFixed(2);
+//           return row; // Keep rows within the max distance
+//         } 
+//     } else {
+//       row["distance (km)"] = "N/A";
+//     }
+
+//     return row;
+//   });
+
+//   const updatedSheet = xlsx.utils.json_to_sheet(updatedData);
+//   const updatedWorkbook = xlsx.utils.book_new();
+//   xlsx.utils.book_append_sheet(updatedWorkbook, updatedSheet, "Updated Data");
+
+//   xlsx.writeFile(updatedWorkbook, outputFilePath);
+//   console.log(`Updated Excel file saved to ${outputFilePath}`);
+// }
+
 function processExcelFile(filePath, outputFilePath, referenceZip) {
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-  const updatedData = jsonData.map((row) => {
+  const filteredData = jsonData.filter((row) => {
     const address = row["address"];
-    const zipCode = extractZipCode(address);
-
-    if (zipCode) {
-      const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
-      const distanceInKm = zipcodes.toKilometers(distanceInMiles);
-        if (distanceInKm <= maxDistanceInKm) {
-          row["distance (km)"] = distanceInKm.toFixed(2);
-          return row; // Keep rows within the max distance
-        } 
-    } else {
-      row["distance (km)"] = "N/A";
+    if (!address) {
+      return false; // Exclude rows with no address
     }
 
-    return row;
+    const zipCode = extractZipCode(address);
+    if (!zipCode) {
+      return false; // Exclude rows with no valid zip code
+    }
+
+    const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
+    if (distanceInMiles === undefined || distanceInMiles === null) {
+      return false; // Exclude rows with invalid distances
+    }
+
+    const distanceInKm = zipcodes.toKilometers(distanceInMiles);
+    if (distanceInKm <= maxDistanceInKm) {
+      row["distance (km)"] = distanceInKm.toFixed(2); // Add the distance for valid rows
+      return true; // Keep rows within the max distance
+    }
+
+    return false; // Exclude rows that exceed max distance
   });
 
-  const updatedSheet = xlsx.utils.json_to_sheet(updatedData);
+  const updatedSheet = xlsx.utils.json_to_sheet(filteredData);
   const updatedWorkbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(updatedWorkbook, updatedSheet, "Updated Data");
+  xlsx.utils.book_append_sheet(updatedWorkbook, updatedSheet, "Filtered Data");
 
   xlsx.writeFile(updatedWorkbook, outputFilePath);
-  console.log(`Updated Excel file saved to ${outputFilePath}`);
+  console.log(`Filtered Excel file saved to ${outputFilePath}`);
 }
+
 
 function processExcelFolder(inputFolderPath, outputFolderPath, referenceZip) {
   fs.readdirSync(inputFolderPath).forEach((file) => {
