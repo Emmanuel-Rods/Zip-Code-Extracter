@@ -18,38 +18,6 @@ function extractZipCode(address) {
     return match ? match[0].split('').reverse().join('') : null; 
 }
 
-// function processExcelFile(filePath, outputFilePath, referenceZip) {
-//   const workbook = xlsx.readFile(filePath);
-//   const sheetName = workbook.SheetNames[0];
-//   const sheet = workbook.Sheets[sheetName];
-//   const jsonData = xlsx.utils.sheet_to_json(sheet);
-
-//   const updatedData = jsonData.map((row) => {
-//     const address = row["address"];
-//     const zipCode = extractZipCode(address);
-
-//     if (zipCode) {
-//       const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
-//       const distanceInKm = zipcodes.toKilometers(distanceInMiles);
-//         if (distanceInKm <= maxDistanceInKm) {
-//           row["distance (km)"] = distanceInKm.toFixed(2);
-//           return row; // Keep rows within the max distance
-//         } 
-//     } else {
-//       row["distance (km)"] = "N/A";
-//     }
-
-//     return row;
-//   });
-
-//   const updatedSheet = xlsx.utils.json_to_sheet(updatedData);
-//   const updatedWorkbook = xlsx.utils.book_new();
-//   xlsx.utils.book_append_sheet(updatedWorkbook, updatedSheet, "Updated Data");
-
-//   xlsx.writeFile(updatedWorkbook, outputFilePath);
-//   console.log(`Updated Excel file saved to ${outputFilePath}`);
-// }
-
 function processExcelFile(filePath, outputFilePath, referenceZip) {
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
@@ -59,17 +27,20 @@ function processExcelFile(filePath, outputFilePath, referenceZip) {
   const filteredData = jsonData.filter((row) => {
     const address = row["address"];
     if (!address) {
-      return false; // Exclude rows with no address
+      row["distance (km)"] = "N/A"; // Mark as N/A
+      return true; // Keep rows with no address
     }
 
     const zipCode = extractZipCode(address);
     if (!zipCode) {
-      return false; // Exclude rows with no valid zip code
+      row["distance (km)"] = "N/A"; // Mark as N/A
+      return true; // Keep rows with no valid zip code
     }
 
     const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
     if (distanceInMiles === undefined || distanceInMiles === null) {
-      return false; // Exclude rows with invalid distances
+      row["distance (km)"] = "N/A"; // Mark as N/A
+      return true; // Keep rows with invalid distances
     }
 
     const distanceInKm = zipcodes.toKilometers(distanceInMiles);
@@ -78,7 +49,8 @@ function processExcelFile(filePath, outputFilePath, referenceZip) {
       return true; // Keep rows within the max distance
     }
 
-    return false; // Exclude rows that exceed max distance
+    // Exclude rows that exceed max distance
+    return false;
   });
 
   const updatedSheet = xlsx.utils.json_to_sheet(filteredData);
