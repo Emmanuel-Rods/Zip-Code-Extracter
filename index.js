@@ -3,19 +3,20 @@ const zipcodes = require("zipcodes");
 const fs = require("fs");
 const path = require("path");
 
-const inputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\delta"; // your folder path
-const outputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\updated delta"; // The path where you want the files to be saved , in this case it will create a folder named updated delta
-const referenceZip = "95843"; // to compare with
+const inputFolderPath =
+  "C:\\Users\\itsro\\OneDrive\\Desktop\\Unity Township (Pennsylvania)"; // your folder path
+const outputFolderPath = "C:\\Users\\itsro\\OneDrive\\Desktop\\updated unity;"; // The path where you want the files to be saved , in this case it will create a folder named updated delta
+const referenceZip = "15601"; // to compare with
 const maxDistanceInKm = 30; // Maximum distance in kilometers to retain rows
 
 function extractZipCode(address) {
-  if (!address || address.trim() === '') {
-    return null; 
+  if (!address || address.trim() === "") {
+    return null;
   }
-    const reversedAddress = address.split('').reverse().join('');
-    const zipCodeRegex = /\b\d{5}(?:-\d{4})?\b/;
-    const match = reversedAddress.match(zipCodeRegex);
-    return match ? match[0].split('').reverse().join('') : null; 
+  const reversedAddress = address.split("").reverse().join("");
+  const zipCodeRegex = /\b\d{5}(?:-\d{4})?\b/;
+  const match = reversedAddress.match(zipCodeRegex);
+  return match ? match[0].split("").reverse().join("") : null;
 }
 
 function processExcelFile(filePath, outputFilePath, referenceZip) {
@@ -35,6 +36,11 @@ function processExcelFile(filePath, outputFilePath, referenceZip) {
     if (!zipCode) {
       row["distance (km)"] = "N/A"; // Mark as N/A
       return true; // Keep rows with no valid zip code
+    }
+   
+    if (zipCode === referenceZip) {
+      row["distance (km)"] = "0.00"; // Distance is zero
+      return true; // Keep the row
     }
 
     const distanceInMiles = zipcodes.distance(referenceZip, zipCode);
